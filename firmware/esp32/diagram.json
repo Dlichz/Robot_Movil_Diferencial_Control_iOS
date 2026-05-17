@@ -11,64 +11,115 @@
             "attrs": {}
         },
         {
-            "type": "wokwi-l298n",
-            "id": "driver",
-            "top": -100,
-            "left": 300,
-            "attrs": {}
-        },
-        {
-            "type": "wokwi-dc-motor",
-            "id": "motorA",
-            "top": -200,
-            "left": 500,
-            "attrs": {
-                "label": "Motor Izq (A)"
-            }
-        },
-        {
-            "type": "wokwi-dc-motor",
-            "id": "motorB",
-            "top": 0,
-            "left": 500,
-            "attrs": {
-                "label": "Motor Der (B)"
-            }
-        },
-        {
             "type": "wokwi-led",
-            "id": "ledFwd",
-            "top": 150,
-            "left": -100,
+            "id": "ledAfwd",
+            "top": -200,
+            "left": 350,
             "attrs": {
                 "color": "green",
-                "label": "FWD"
+                "label": "A-FWD"
             }
         },
         {
             "type": "wokwi-led",
-            "id": "ledBwd",
-            "top": 150,
-            "left": -50,
+            "id": "ledAbwd",
+            "top": -200,
+            "left": 420,
             "attrs": {
                 "color": "red",
-                "label": "BWD"
+                "label": "A-BWD"
+            }
+        },
+        {
+            "type": "wokwi-led",
+            "id": "ledAspd",
+            "top": -200,
+            "left": 490,
+            "attrs": {
+                "color": "yellow",
+                "label": "A-SPEED"
+            }
+        },
+        {
+            "type": "wokwi-led",
+            "id": "ledBfwd",
+            "top": 100,
+            "left": 350,
+            "attrs": {
+                "color": "green",
+                "label": "B-FWD"
+            }
+        },
+        {
+            "type": "wokwi-led",
+            "id": "ledBbwd",
+            "top": 100,
+            "left": 420,
+            "attrs": {
+                "color": "red",
+                "label": "B-BWD"
+            }
+        },
+        {
+            "type": "wokwi-led",
+            "id": "ledBspd",
+            "top": 100,
+            "left": 490,
+            "attrs": {
+                "color": "yellow",
+                "label": "B-SPEED"
             }
         },
         {
             "type": "wokwi-resistor",
-            "id": "r1",
-            "top": 220,
-            "left": -100,
+            "id": "rAfwd",
+            "top": -120,
+            "left": 350,
             "attrs": {
                 "value": "220"
             }
         },
         {
             "type": "wokwi-resistor",
-            "id": "r2",
-            "top": 220,
-            "left": -50,
+            "id": "rAbwd",
+            "top": -120,
+            "left": 420,
+            "attrs": {
+                "value": "220"
+            }
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "rAspd",
+            "top": -120,
+            "left": 490,
+            "attrs": {
+                "value": "220"
+            }
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "rBfwd",
+            "top": 180,
+            "left": 350,
+            "attrs": {
+                "value": "220"
+            }
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "rBbwd",
+            "top": 180,
+            "left": 420,
+            "attrs": {
+                "value": "220"
+            }
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "rBspd",
+            "top": 180,
+            "left": 490,
             "attrs": {
                 "value": "220"
             }
@@ -76,122 +127,116 @@
         {
             "type": "wokwi-logic-analyzer",
             "id": "logic1",
-            "top": 300,
+            "top": 350,
             "left": 0,
             "attrs": {}
         }
     ],
     "connections": [
         [
+            "esp:D26",
+            "rAfwd:1",
+            "green",
+            []
+        ],
+        [
+            "rAfwd:2",
+            "ledAfwd:A",
+            "green",
+            []
+        ],
+        [
+            "ledAfwd:C",
             "esp:GND.1",
-            "driver:GND",
             "black",
             []
         ],
         [
-            "esp:VIN",
-            "driver:+12V",
-            "red",
-            []
-        ],
-        [
-            "esp:3V3",
-            "driver:+5V",
-            "red",
-            []
-        ],
-        [
-            "esp:D26",
-            "driver:IN1",
-            "green",
-            []
-        ],
-        [
             "esp:D27",
-            "driver:IN2",
-            "green",
+            "rAbwd:1",
+            "red",
+            []
+        ],
+        [
+            "rAbwd:2",
+            "ledAbwd:A",
+            "red",
+            []
+        ],
+        [
+            "ledAbwd:C",
+            "esp:GND.1",
+            "black",
             []
         ],
         [
             "esp:D25",
-            "driver:ENA",
+            "rAspd:1",
             "orange",
+            []
+        ],
+        [
+            "rAspd:2",
+            "ledAspd:A",
+            "orange",
+            []
+        ],
+        [
+            "ledAspd:C",
+            "esp:GND.1",
+            "black",
             []
         ],
         [
             "esp:D14",
-            "driver:IN3",
-            "blue",
-            []
-        ],
-        [
-            "esp:D12",
-            "driver:IN4",
-            "blue",
-            []
-        ],
-        [
-            "esp:D33",
-            "driver:ENB",
-            "orange",
-            []
-        ],
-        [
-            "driver:OUT1",
-            "motorA:1",
-            "purple",
-            []
-        ],
-        [
-            "driver:OUT2",
-            "motorA:2",
-            "purple",
-            []
-        ],
-        [
-            "driver:OUT3",
-            "motorB:1",
-            "purple",
-            []
-        ],
-        [
-            "driver:OUT4",
-            "motorB:2",
-            "purple",
-            []
-        ],
-        [
-            "esp:D2",
-            "r1:1",
+            "rBfwd:1",
             "green",
             []
         ],
         [
-            "r1:2",
-            "ledFwd:A",
+            "rBfwd:2",
+            "ledBfwd:A",
             "green",
             []
         ],
         [
-            "ledFwd:C",
+            "ledBfwd:C",
             "esp:GND.2",
             "black",
             []
         ],
         [
-            "esp:D4",
-            "r2:1",
+            "esp:D12",
+            "rBbwd:1",
             "red",
             []
         ],
         [
-            "r2:2",
-            "ledBwd:A",
+            "rBbwd:2",
+            "ledBbwd:A",
             "red",
             []
         ],
         [
-            "ledBwd:C",
+            "ledBbwd:C",
+            "esp:GND.2",
+            "black",
+            []
+        ],
+        [
+            "esp:D33",
+            "rBspd:1",
+            "orange",
+            []
+        ],
+        [
+            "rBspd:2",
+            "ledBspd:A",
+            "orange",
+            []
+        ],
+        [
+            "ledBspd:C",
             "esp:GND.2",
             "black",
             []
@@ -217,6 +262,18 @@
         [
             "esp:D33",
             "logic1:D3",
+            "cyan",
+            []
+        ],
+        [
+            "esp:D14",
+            "logic1:D4",
+            "cyan",
+            []
+        ],
+        [
+            "esp:D12",
+            "logic1:D5",
             "cyan",
             []
         ],
