@@ -1,62 +1,67 @@
-# Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+# ─────────────────────────────────────────
+# Sistema Operativo
+# ─────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-## User settings
-xcuserdata/
-
-## Obj-C/Swift specific
-*.hmap
-
-## App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
-
-## Playgrounds
-timeline.xctimeline
-playground.xcworkspace
+# ─────────────────────────────────────────
+# iOS / Xcode
+# ─────────────────────────────────────────
+ios-app/build/
+ios-app/*.xcworkspace/xcuserdata/
+ios-app/*.xcodeproj/xcuserdata/
+ios-app/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios-app/DerivedData/
+ios-app/*.ipa
+ios-app/*.dSYM.zip
+ios-app/*.dSYM
 
 # Swift Package Manager
-#
-# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
-# Packages/
-# Package.pins
-# Package.resolved
-# *.xcodeproj
-#
-# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
-# hence it is not needed unless you have added a package configuration file to your project
-# .swiftpm
+ios-app/.build/
+ios-app/.swiftpm/
 
-.build/
+# CocoaPods (si lo usas en el futuro)
+ios-app/Pods/
+ios-app/Podfile.lock
 
-# CocoaPods
-#
-# We recommend against adding the Pods directory to your .gitignore. However
-# you should judge for yourself, the pros and cons are mentioned at:
-# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
-#
-# Pods/
-#
-# Add this line if you want to avoid checking in source code from the Xcode workspace
-# *.xcworkspace
+# ─────────────────────────────────────────
+# Firmware ESP32 — PlatformIO
+# ─────────────────────────────────────────
+firmware/.pio/
+firmware/.vscode/
+firmware/.pioenvs/
+firmware/.piolibdeps/
 
-# Carthage
-#
-# Add this line if you want to avoid checking in source code from Carthage dependencies.
-# Carthage/Checkouts
+# ─────────────────────────────────────────
+# Firmware ESP32 — Arduino IDE (alternativa)
+# ─────────────────────────────────────────
+firmware/build/
 
-Carthage/Build/
+# ─────────────────────────────────────────
+# CAD — Fusion 360
+# ─────────────────────────────────────────
+cad/*.lock
+cad/backup/
 
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo.
-# Instead, use fastlane to re-generate the screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/#source-control
+# ─────────────────────────────────────────
+# Editores
+# ─────────────────────────────────────────
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
 
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots/**/*.png
-fastlane/test_output
+# ─────────────────────────────────────────
+# Secretos (por si acaso)
+# ─────────────────────────────────────────
+.env
+*.pem
+*.key
+secrets.h
