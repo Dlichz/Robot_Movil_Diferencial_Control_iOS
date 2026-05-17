@@ -1,0 +1,231 @@
+{
+    "version": 1,
+    "author": "Robot Diferencial ESP32",
+    "editor": "wokwi",
+    "parts": [
+        {
+            "type": "board-esp32-devkit-c-v4",
+            "id": "esp",
+            "top": 0,
+            "left": 0,
+            "attrs": {}
+        },
+        {
+            "type": "wokwi-l298n",
+            "id": "driver",
+            "top": -100,
+            "left": 300,
+            "attrs": {}
+        },
+        {
+            "type": "wokwi-dc-motor",
+            "id": "motorA",
+            "top": -200,
+            "left": 500,
+            "attrs": {
+                "label": "Motor Izq (A)"
+            }
+        },
+        {
+            "type": "wokwi-dc-motor",
+            "id": "motorB",
+            "top": 0,
+            "left": 500,
+            "attrs": {
+                "label": "Motor Der (B)"
+            }
+        },
+        {
+            "type": "wokwi-led",
+            "id": "ledFwd",
+            "top": 150,
+            "left": -100,
+            "attrs": {
+                "color": "green",
+                "label": "FWD"
+            }
+        },
+        {
+            "type": "wokwi-led",
+            "id": "ledBwd",
+            "top": 150,
+            "left": -50,
+            "attrs": {
+                "color": "red",
+                "label": "BWD"
+            }
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "r1",
+            "top": 220,
+            "left": -100,
+            "attrs": {
+                "value": "220"
+            }
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "r2",
+            "top": 220,
+            "left": -50,
+            "attrs": {
+                "value": "220"
+            }
+        },
+        {
+            "type": "wokwi-logic-analyzer",
+            "id": "logic1",
+            "top": 300,
+            "left": 0,
+            "attrs": {}
+        }
+    ],
+    "connections": [
+        [
+            "esp:GND.1",
+            "driver:GND",
+            "black",
+            []
+        ],
+        [
+            "esp:VIN",
+            "driver:+12V",
+            "red",
+            []
+        ],
+        [
+            "esp:3V3",
+            "driver:+5V",
+            "red",
+            []
+        ],
+        [
+            "esp:D26",
+            "driver:IN1",
+            "green",
+            []
+        ],
+        [
+            "esp:D27",
+            "driver:IN2",
+            "green",
+            []
+        ],
+        [
+            "esp:D25",
+            "driver:ENA",
+            "orange",
+            []
+        ],
+        [
+            "esp:D14",
+            "driver:IN3",
+            "blue",
+            []
+        ],
+        [
+            "esp:D12",
+            "driver:IN4",
+            "blue",
+            []
+        ],
+        [
+            "esp:D33",
+            "driver:ENB",
+            "orange",
+            []
+        ],
+        [
+            "driver:OUT1",
+            "motorA:1",
+            "purple",
+            []
+        ],
+        [
+            "driver:OUT2",
+            "motorA:2",
+            "purple",
+            []
+        ],
+        [
+            "driver:OUT3",
+            "motorB:1",
+            "purple",
+            []
+        ],
+        [
+            "driver:OUT4",
+            "motorB:2",
+            "purple",
+            []
+        ],
+        [
+            "esp:D2",
+            "r1:1",
+            "green",
+            []
+        ],
+        [
+            "r1:2",
+            "ledFwd:A",
+            "green",
+            []
+        ],
+        [
+            "ledFwd:C",
+            "esp:GND.2",
+            "black",
+            []
+        ],
+        [
+            "esp:D4",
+            "r2:1",
+            "red",
+            []
+        ],
+        [
+            "r2:2",
+            "ledBwd:A",
+            "red",
+            []
+        ],
+        [
+            "ledBwd:C",
+            "esp:GND.2",
+            "black",
+            []
+        ],
+        [
+            "esp:D25",
+            "logic1:D0",
+            "cyan",
+            []
+        ],
+        [
+            "esp:D26",
+            "logic1:D1",
+            "cyan",
+            []
+        ],
+        [
+            "esp:D27",
+            "logic1:D2",
+            "cyan",
+            []
+        ],
+        [
+            "esp:D33",
+            "logic1:D3",
+            "cyan",
+            []
+        ],
+        [
+            "esp:GND.3",
+            "logic1:GND",
+            "black",
+            []
+        ]
+    ],
+    "dependencies": {}
+}
