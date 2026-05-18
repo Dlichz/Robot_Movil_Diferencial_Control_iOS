@@ -7,70 +7,159 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct ContentView: View {
-    // Escuchamos al gestor de Bluetooth. Si connectionStatus cambia allá, la vista se actualiza sola.
-    @StateObject var bleManager = BluetoothManager()
-    
-    // Estado local para saber si nuestro botón (y el LED) debe estar prendido o apagado
-    @State private var isLEDOn = false
+    @EnvironmentObject var ble: BLEManager
     
     var body: some View {
-        VStack(spacing: 40) {
-            
-            // 1. Etiqueta de Estado
-            // Cambia de color (Verde/Rojo) y texto según lo que dicte el bleManager
-            HStack {
-                Circle()
-                    .fill(bleManager.connectionStatus == "¡Conectado!" ? Color.green : Color.red)
-                    .frame(width: 12, height: 12)
-                Text(bleManager.connectionStatus)
-                    .font(.subheadline)
-            }
-            .padding()
-            .background(Capsule().fill(Color(.systemGroupedBackground)))
-            
-            Spacer()
-            
-            // 2. Botón de Control
-            // SÓLO se muestra si el estado es "¡Conectado!"
-            if bleManager.connectionStatus == "¡Conectado!" {
-                Button(action: {
-                    // Invierte el estado (si era true pasa a false, y viceversa)
-                    isLEDOn.toggle()
-                    
-                    // Llama a la función del manager pasándole el nuevo estado
-                    bleManager.sendLEDCommand(turnOn: isLEDOn)
-                }) {
-                    VStack(spacing: 15) {
-                        // El icono cambia dinámicamente si está encendido o apagado
-                        Image(systemName: isLEDOn ? "lightbulb.fill" : "lightbulb")
-                            .font(.system(size: 80))
-                            .foregroundColor(isLEDOn ? .yellow : .gray)
-                        
-                        Text(isLEDOn ? "APAGAR LED" : "ENCENDER LED")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(width: 200)
-                            .background(isLEDOn ? Color.red : Color.blue)
-                            .cornerRadius(15)
-                    }
+        NavigationStack {
+            VStack(spacing: 0) {
+                statusBar
+                
+                if ble.state == .connected {
+                    consoleView
+                } else {
+                    scanView
                 }
-            } else {
-                // Si no está conectado, muestra este texto bloqueando la interacción
-                Text("Espera a que el ESP32 se conecte...")
-                    .foregroundColor(.secondary)
-                    .italic()
             }
-            
+            .navigationTitle("DesktopRover")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+    
+    // MARK: - Barra de estado superior
+    private var statusBar: some View {
+        HStack {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 10, height: 10)
+            Text(ble.state.rawValue)
+                .font(.subheadline)
             Spacer()
+            if ble.state == .connected {
+                Text("RSSI: \(ble.currentRSSI) dBm")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding()
+        .background(.ultraThinMaterial)
+    }
+    
+    private var statusColor: Color {
+        switch ble.state {
+        case .connected: return .green
+        case .connecting, .scanning: return .orange
+        case .poweredOff, .unauthorized: return .red
+        default: return .gray
+        }
+    }
+    
+    // MARK: - Vista de escaneo
+    private var scanView: some View {
+        VStack {
+            List(ble.devices) { device in
+                Button {
+                    ble.connect(device)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(device.name).font(.headline)
+                            Text(device.id.uuidString.prefix(8) + "...")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text("\(device.rssi) dBm")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .foregroundStyle(.primary)
+            }
+            
+            Button {
+                ble.state == .scanning ? ble.stopScan() : ble.startScan()
+            } label: {
+                Label(
+                    ble.state == .scanning ? "Detener" : "Escanear",
+                    systemImage: ble.state == .scanning ? "stop.circle" : "magnifyingglass"
+                )
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(.tint)
+                .foregroundStyle(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding()
+            .disabled(ble.state == .poweredOff || ble.state == .unauthorized)
+        }
+    }
+    
+    // MARK: - Consola de comandos
+    private var consoleView: some View {
+        VStack(spacing: 12) {
+            // Botones de comandos
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                commandButton("PING", color: .blue)
+                commandButton("STATUS", color: .purple)
+                commandButton("LED_ON", color: .green)
+                commandButton("LED_OFF", color: .gray)
+            }
+            .padding(.horizontal)
+            
+            // Log
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 4) {
+                        ForEach(Array(ble.receivedMessages.enumerated()), id: \.offset) { idx, msg in
+                            Text(msg)
+                                .font(.system(.caption, design: .monospaced))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .id(idx)
+                        }
+                    }
+                    .padding()
+                }
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal)
+                .onChange(of: ble.receivedMessages.count) { _, newCount in
+                    withAnimation {
+                        proxy.scrollTo(newCount - 1, anchor: .bottom)
+                    }
+                }
+            }
+            
+            Button(role: .destructive) {
+                ble.disconnect()
+            } label: {
+                Label("Desconectar", systemImage: "xmark.circle")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                    .foregroundStyle(.red)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding(.horizontal)
+            .padding(.bottom)
+        }
+    }
+    
+    private func commandButton(_ cmd: String, color: Color) -> some View {
+        Button {
+            ble.send(cmd)
+        } label: {
+            Text(cmd)
+                .font(.system(.body, design: .monospaced).weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(color)
+                .foregroundStyle(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView().environmentObject(BLEManager())
 }

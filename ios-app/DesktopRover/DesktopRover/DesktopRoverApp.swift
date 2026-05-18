@@ -9,10 +9,12 @@ import SwiftUI
 
 @main
 struct DesktopRoverApp: App {
+    @StateObject private var ble = BLEManager()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(ble)
         }
     }
 }

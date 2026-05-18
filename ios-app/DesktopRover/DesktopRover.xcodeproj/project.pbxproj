@@ -209,7 +209,6 @@
 			mainGroup = DB7878DD2FBAB65E00899458;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				DB7879142FBAB7E200899458 /* XCRemoteSwiftPackageReference "BLEManager-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DB7878E72FBAB65E00899458 /* Products */;
@@ -637,17 +636,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		DB7879142FBAB7E200899458 /* XCRemoteSwiftPackageReference "BLEManager-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/iqvis/BLEManager-iOS.git";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = DB7878DE2FBAB65E00899458 /* Project object */;
 }

@@ -1,41 +1,85 @@
 #include <Arduino.h>
 #include <BLEDevice.h>
-#include <BLEUtils.h>
 #include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
 
-#define SERVICE_UUID "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
-#define CHARACTERISTIC_UUID "BEB5483E-36E1-4688-B7F5-EA07361B26A8"
+// ===== UUIDs Nordic UART Service (NUS) =====
+#define SERVICE_UUID "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
+#define CHARACTERISTIC_RX "6e400002-b5a3-f393-e0a9-e50e24dcca9e" // iPhone -> ESP32
+#define CHARACTERISTIC_TX "6e400003-b5a3-f393-e0a9-e50e24dcca9e" // ESP32 -> iPhone
 
-// Define el pin del LED interno (en la mayoría de ESP32 es el pin 2)
-const int ledPin = 2;
+#define DEVICE_NAME "DesktopRover"
+#define LED_PIN 2 // LED interno del ESP32 DevKit
 
-// Clase que maneja los eventos de escritura desde la App
-class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
+BLEServer *pServer = nullptr;
+BLECharacteristic *pTxCharacteristic = nullptr;
+bool deviceConnected = false;
+bool oldDeviceConnected = false;
+
+// ===== Helper para enviar respuestas =====
+void sendResponse(const String &msg)
 {
-  void onWrite(BLECharacteristic *pCharacteristic)
+  if (deviceConnected && pTxCharacteristic)
   {
-    std::string value = pCharacteristic->getValue();
+    pTxCharacteristic->setValue(msg.c_str());
+    pTxCharacteristic->notify();
+    Serial.printf("[TX] %s\n", msg.c_str());
+  }
+}
 
-    if (value.length() > 0)
+// ===== Callbacks de conexión =====
+class ServerCallbacks : public BLEServerCallbacks
+{
+  void onConnect(BLEServer *pServer) override
+  {
+    deviceConnected = true;
+    Serial.println("[BLE] Cliente conectado");
+  }
+
+  void onDisconnect(BLEServer *pServer) override
+  {
+    deviceConnected = false;
+    Serial.println("[BLE] Cliente desconectado");
+  }
+};
+
+// ===== Callback de comandos recibidos =====
+class RxCallbacks : public BLECharacteristicCallbacks
+{
+  void onWrite(BLECharacteristic *pCharacteristic) override
+  {
+    String value = pCharacteristic->getValue().c_str();
+    value.trim();
+
+    if (value.length() == 0)
+      return;
+
+    Serial.printf("[RX] %s\n", value.c_str());
+
+    // Procesar comandos
+    if (value == "PING")
     {
-      Serial.print("Dato recibido: ");
-      for (int i = 0; i < value.length(); i++)
-      {
-        Serial.print(value[i]);
-      }
-      Serial.println();
-
-      // Si recibimos un '1', encendemos el LED. Si es '0', lo apagamos.
-      if (value == "1")
-      {
-        digitalWrite(ledPin, HIGH);
-        Serial.println("LED Encendido");
-      }
-      else if (value == "0")
-      {
-        digitalWrite(ledPin, LOW);
-        Serial.println("LED Apagado");
-      }
+      sendResponse("PONG");
+    }
+    else if (value == "LED_ON")
+    {
+      digitalWrite(LED_PIN, HIGH);
+      sendResponse("LED:1");
+    }
+    else if (value == "LED_OFF")
+    {
+      digitalWrite(LED_PIN, LOW);
+      sendResponse("LED:0");
+    }
+    else if (value == "STATUS")
+    {
+      String resp = "OK,uptime=" + String(millis() / 1000);
+      sendResponse(resp);
+    }
+    else
+    {
+      sendResponse("ERR:UNKNOWN_CMD");
     }
   }
 };
@@ -43,40 +87,72 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
 void setup()
 {
   Serial.begin(115200);
+  delay(500);
+  Serial.println("\n=== DesktopRover BLE iniciando ===");
 
-  // Configura el pin del LED como salida
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW); // Arranca apagado
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
-  Serial.println("Iniciando ESP32 BLE...");
-  BLEDevice::init("ESP32_LED_Control");
+  // Inicializar BLE
+  BLEDevice::init(DEVICE_NAME);
 
-  BLEServer *pServer = BLEDevice::createServer();
+  // Crear servidor
+  pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new ServerCallbacks());
+
+  // Crear servicio
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
-  // AHORA AÑADIMOS PROPERTY_WRITE para poder recibir datos desde el iPhone
-  BLECharacteristic *pCharacteristic = pService->createCharacteristic(
-      CHARACTERISTIC_UUID,
-      BLECharacteristic::PROPERTY_READ |
-          BLECharacteristic::PROPERTY_WRITE |
-          BLECharacteristic::PROPERTY_NOTIFY);
+  // Characteristic TX (ESP32 -> iPhone) con notify
+  pTxCharacteristic = pService->createCharacteristic(
+      CHARACTERISTIC_TX,
+      BLECharacteristic::PROPERTY_NOTIFY);
+  pTxCharacteristic->addDescriptor(new BLE2902());
 
-  // Asignamos las funciones callback a la característica
-  pCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
-  pCharacteristic->setValue("0"); // Estado inicial
+  // Characteristic RX (iPhone -> ESP32) con write
+  BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(
+      CHARACTERISTIC_RX,
+      BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
+  pRxCharacteristic->setCallbacks(new RxCallbacks());
 
+  // Iniciar servicio
   pService->start();
 
+  // Iniciar advertising
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->setScanResponse(true);
-  pAdvertising->setMinPreferred(0x06);
+  pAdvertising->setMinPreferred(0x06); // mejor compatibilidad con iPhone
+  pAdvertising->setMinPreferred(0x12);
   BLEDevice::startAdvertising();
 
-  Serial.println("¡Listo! Esperando comandos del iPhone...");
+  Serial.printf("[BLE] Advertising como '%s'\n", DEVICE_NAME);
+  Serial.println("[BLE] Esperando conexión del iPhone...");
 }
 
 void loop()
 {
-  delay(2000);
+  // Re-iniciar advertising tras desconexión
+  if (!deviceConnected && oldDeviceConnected)
+  {
+    delay(500);
+    pServer->startAdvertising();
+    Serial.println("[BLE] Re-advertising");
+    oldDeviceConnected = deviceConnected;
+  }
+  if (deviceConnected && !oldDeviceConnected)
+  {
+    oldDeviceConnected = deviceConnected;
+  }
+
+  // Telemetría de prueba cada 2 segundos
+  static uint32_t lastTelemetry = 0;
+  if (deviceConnected && millis() - lastTelemetry > 2000)
+  {
+    lastTelemetry = millis();
+    String t = "HEARTBEAT," + String(millis());
+    sendResponse(t);
+  }
+
+  delay(10);
 }
